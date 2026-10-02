@@ -1,1 +1,621 @@
+.index/html
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Найкращі фільми усіх часів — Кінотека</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
 
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 via-rose-500 to-purple-500 bg-clip-text text-transparent">Кінотека</span>
+                    <span class="block text-xs text-slate-400 font-medium">Шедеври кінематографа</span>
+                </div>
+            </div>
+
+            <!-- Search Bar (Desktop) -->
+            <div class="hidden md:flex items-center flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Пошук за назвою, режисером, роком..." class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-slate-500">
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-4">
+                <button onclick="openWatchlistModal()" class="relative p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all flex items-center space-x-2 text-sm font-medium">
+                    <i class="fa-solid fa-bookmark text-amber-500"></i>
+                    <span class="hidden sm:inline">Список збережених</span>
+                    <span id="watchlistBadge" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md">0</span>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Search Bar -->
+        <div class="md:hidden px-4 pb-4">
+            <div class="relative w-full">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text" id="mobileSearchInput" oninput="handleSearch(this.value)" placeholder="Пошук фільму..." class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Spotlight Section -->
+    <section class="relative bg-slate-900 border-b border-slate-800 overflow-hidden py-12 lg:py-16">
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-400 text-xs font-semibold tracking-wide uppercase">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Вибір редакції</span>
+                    </div>
+                    <h1 id="heroTitle" class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+                        Втеча з Шоушенка
+                    </h1>
+                    <p id="heroDescription" class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+                        Бухгалтер Енді Дюфрейн опиняється у в'язниці Шоушенк за вбивство, якого не скоював. Протягом десятиліть він завойовує повагу співкаторжників та зберігає надію в найпохмуріших умовах.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <button id="heroPlayBtn" onclick="openMovieModal(0)" class="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/25 flex items-center space-x-2 transition-all">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Детальніше & Треллер</span>
+                        </button>
+                        <button id="heroWatchlistBtn" onclick="toggleWatchlist(0)" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-semibold rounded-xl flex items-center space-x-2 transition-all">
+                            <i class="fa-regular fa-bookmark"></i>
+                            <span id="heroWatchlistText">У список</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 flex justify-center">
+                    <div class="relative w-full max-w-sm aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/80 border border-slate-800 group">
+                        <img id="heroImage" src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800" alt="Hero Movie" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
+                        <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                            <span id="heroGenreBadge" class="px-3 py-1 bg-slate-950/80 backdrop-blur-md rounded-lg text-xs font-medium border border-slate-800">Драма</span>
+                            <div class="flex items-center space-x-1 bg-amber-500/20 backdrop-blur-md border border-amber-500/30 px-2.5 py-1 rounded-lg text-amber-400 font-bold text-xs">
+                                <i class="fa-solid fa-star"></i>
+                                <span id="heroRating">9.3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Catalog -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <!-- Filter Tabs -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <h2 class="text-2xl font-bold tracking-tight">Колекція фільмів</h2>
+            
+            <!-- Category Pills -->
+            <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+                <button onclick="filterCategory('all')" id="cat-all" class="category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-amber-500 text-slate-950 transition-all shadow-md shadow-amber-500/20">Усі фільми</button>
+                <button onclick="filterCategory('Драма')" id="cat-Драма" class="category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-all">Драма</button>
+                <button onclick="filterCategory('Фантастика')" id="cat-Фантастика" class="category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-all">Фантастика</button>
+                <button onclick="filterCategory('Кримінал')" id="cat-Кримінал" class="category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-all">Кримінал</button>
+                <button onclick="filterCategory('Бойовик')" id="cat-Бойовик" class="category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-all">Бойовик</button>
+                <button onclick="filterCategory('Анімація')" id="cat-Анімація" class="category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-all">Анімація</button>
+            </div>
+        </div>
+
+        <!-- Movie Grid Container -->
+        <div id="movieGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Populated via JavaScript -->
+        </div>
+
+        <!-- Empty Search State -->
+        <div id="noResults" class="hidden text-center py-20">
+            <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-500 text-2xl">
+                <i class="fa-solid fa-face-frown"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-300 mb-1">Фільмів не знайдено</h3>
+            <p class="text-slate-500 text-sm max-w-sm mx-auto">Спробуйте змінити пошуковий запит або вибрати іншу категорію.</p>
+        </div>
+    </main>
+
+    <!-- Movie Details & Trailer Modal -->
+    <div id="movieModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative transform scale-95 transition-transform duration-300" id="modalContentBox">
+            <!-- Close Button -->
+            <button onclick="closeMovieModal()" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-slate-950/70 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <div class="relative aspect-video w-full bg-slate-950">
+                <iframe id="modalTrailer" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2 text-xs font-semibold text-amber-400 uppercase tracking-wide mb-1">
+                            <span id="modalGenre">Драма</span>
+                            <span>•</span>
+                            <span id="modalYear">1994</span>
+                            <span>•</span>
+                            <span id="modalDuration">142 хв</span>
+                        </div>
+                        <h2 id="modalTitle" class="text-2xl sm:text-3xl font-extrabold text-white">Втеча з Шоушенка</h2>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl">
+                        <i class="fa-solid fa-star text-amber-500"></i>
+                        <span id="modalRating" class="font-bold text-amber-400 text-base">9.3</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Режисер</h4>
+                    <p id="modalDirector" class="text-sm font-semibold text-slate-200">Френк Даррабонт</p>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider">У головних ролях</h4>
+                    <p id="modalCast" class="text-sm text-slate-300">Тім Роббінс, Морган Фріман</p>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Опис</h4>
+                    <p id="modalDesc" class="text-sm sm:text-base text-slate-300 leading-relaxed">Опис фільму...</p>
+                </div>
+
+                <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                    <button id="modalWatchlistBtn" onclick="toggleWatchlistFromModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl font-semibold text-sm flex items-center space-x-2 transition-all">
+                        <i class="fa-regular fa-bookmark"></i>
+                        <span id="modalWatchlistText">У список збережених</span>
+                    </button>
+                    <button onclick="closeMovieModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold text-sm transition-all">
+                        Закрити
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watchlist Modal -->
+    <div id="watchlistModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative p-6 sm:p-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                        <i class="fa-solid fa-bookmark"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold">Ваш список збережених</h3>
+                        <p class="text-xs text-slate-400">Фільми, які ви плануєте переглянути</p>
+                    </div>
+                </div>
+                <button onclick="closeWatchlistModal()" class="w-9 h-9 rounded-full bg-slate-950/70 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="watchlistContainer" class="space-y-4">
+                <!-- Dynamically filled -->
+            </div>
+            
+            <div id="emptyWatchlist" class="hidden text-center py-12">
+                <div class="w-14 h-14 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-600 text-xl">
+                    <i class="fa-regular fa-bookmark"></i>
+                </div>
+                <h4 class="font-bold text-slate-300 text-sm">Список порожній</h4>
+                <p class="text-slate-500 text-xs mt-1">Додавайте фільми кнопкою збереження, щоб переглянути їх пізніше.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 mt-20 py-8 text-center text-slate-500 text-sm">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 Кінотека. Найкращі світові шедеври кіно.</p>
+            <div class="flex items-center space-x-4 text-lg">
+                <a href="#" class="hover:text-amber-500 transition-colors"><i class="fa-brands fa-telegram"></i></a>
+                <a href="#" class="hover:text-amber-500 transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                <a href="#" class="hover:text-amber-500 transition-colors"><i class="fa-brands fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Movie Database
+        const movies = [
+            {
+                id: 0,
+                title: "Втеча з Шоушенка",
+                originalTitle: "The Shawshank Redemption",
+                year: 1994,
+                genre: "Драма",
+                rating: 9.3,
+                duration: "142 хв",
+                director: "Френк Даррабонт",
+                cast: "Тім Роббінс, Морган Фріман, Боб Гантон",
+                description: "Успішний банкір Енді Дюфрейн звинувачений у вбивстві дружини та її коханця. Опинившись у в'язниці Шоушенк, він стикається з жорстокою реальністю, але не втрачає сили духу, знаходячи друзів та надію там, де здавалося б її не може бути.",
+                poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/5hbi_Wd_D7s"
+            },
+            {
+                id: 1,
+                title: "Хрещений батько",
+                originalTitle: "The Godfather",
+                year: 1972,
+                genre: "Кримінал",
+                rating: 9.2,
+                duration: "175 хв",
+                director: "Френсіс Форд Коппола",
+                cast: "Марлон Брандо, Аль Пачіно, Джеймс Каан",
+                description: "Епічна розповідь про нью-йоркську сицилійську мафіозну сім'ю Корлеоне. Фільм охоплює період з 1945 по 1955 роки та детально опиняє трансформацію молодшого сина Майкла від відстороненого ветерана до безжального патріарха клану.",
+                poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/sY1S34973zA"
+            },
+            {
+                id: 2,
+                title: "Темний лицар",
+                originalTitle: "The Dark Knight",
+                year: 2008,
+                genre: "Бойовик",
+                rating: 9.0,
+                duration: "152 хв",
+                director: "Крістофер Нолан",
+                cast: "Крістіан Бейл, Гіт Леджер, Аарон Екгарт",
+                description: "Бетмен об'єднує зусилля з прокурором Гарві Дентом та комісаром поліції Джимом Гордоном, щоб викорінити організовану злочинність у Ґотемі. Проте на арену виходить новий психопатичний геній — Джокер, який занурює місто в хаос.",
+                poster: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/EXeTwQWrcwY"
+            },
+            {
+                id: 3,
+                title: "Початок",
+                originalTitle: "Inception",
+                year: 2010,
+                genre: "Фантастика",
+                rating: 8.8,
+                duration: "148 хв",
+                director: "Крістофер Нолан",
+                cast: "Леонардо Ді Капріо, Джозеф Гордон-Левітт, Еллі Пейдж",
+                description: "Кобб — талановитий злодій, що краде цінні секрети з підсвідомості людей під час їхнього сну, коли розум найбільш вразливий. Йому пропонують неймовірно складне завдання: не вкрасти ідею, а внедріти її у свідомість спадкоємця корпорації.",
+                poster: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/YoHD9XEInc0"
+            },
+            {
+                id: 4,
+                title: "Інтерстеллар",
+                originalTitle: "Interstellar",
+                year: 2014,
+                genre: "Фантастика",
+                rating: 8.7,
+                duration: "169 хв",
+                director: "Крістофер Нолан",
+                cast: "Меттью МакКонахі, Енн Гетевей, Джессіка Честейн",
+                description: "Коли Земля стає непридатною для життя через глобальну засуху та пилові бурі, група вчених і колишній пілот НАСА Купер вирушають крізь нещодавно виявлену червоточину в космосі в пошуках нового дому для людства.",
+                poster: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/zSWdZVtXT7E"
+            },
+            {
+                id: 5,
+                title: "Список Шиндлера",
+                originalTitle: "Schindler's List",
+                year: 1993,
+                genre: "Драма",
+                rating: 9.0,
+                duration: "195 хв",
+                director: "Стівен Спілберг",
+                cast: "Ліам Нісон, Бен Кінгслі, Рейф Файнс",
+                description: "Історія німецького підприємця Оскара Шиндлера, який під час Другої світової війни врятував понад тисячу польських євреїв від загибелі в концтаборах, влаштувавши їх працювати на свої заводи.",
+                poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/gG22XNhtnoY"
+            },
+            {
+                id: 6,
+                title: "Віднесені привидами",
+                originalTitle: "Spirited Away",
+                year: 2001,
+                genre: "Анімація",
+                rating: 8.6,
+                duration: "125 хв",
+                director: "Хаяо Міядзакі",
+                cast: "Румі Хіірагі, Мію Ірино, Марі Нацукі",
+                description: "Десятилітня Тіхіро разом з батьками переїжджає до нового містечка. По дорозі вони випадково потрапляють у містичний світ богів, відьом та духів, де її батьків перетворюють на свиней. Дівчинці доводиться проявити хоробрість, щоб врятувати родину.",
+                poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/ByXuk9QqQkk"
+            },
+            {
+                id: 7,
+                title: "Бійцівський клуб",
+                originalTitle: "Fight Club",
+                year: 1999,
+                genre: "Драма",
+                rating: 8.8,
+                duration: "139 хв",
+                director: "Девід Фінчер",
+                cast: "Бред Пітт, Едвард Нортон, Гелена Бонем Картер",
+                description: "Страждаючи від безсоння та нудьги у сірому офісному житті, безіменний службовець знайомиться з харизматичним продавцем мила Тайлером Дерденом. Разом вони створюють таємний бійцівський клуб, що переростає у глобальний рух проти споживацького суспільства.",
+                poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=800",
+                trailer: "https://www.youtube.com/embed/SUXWAEX2jlg"
+            }
+        ];
+
+        let currentCategory = 'all';
+        let searchQuery = '';
+        let watchlist = JSON.parse(localStorage.getItem('kino_watchlist')) || [];
+        let activeModalMovieId = null;
+
+        // Initialize application on load
+        window.onload = function() {
+            renderMovies();
+            updateWatchlistBadge();
+        };
+
+        // Render movie grid based on filters & search
+        function renderMovies() {
+            const grid = document.getElementById('movieGrid');
+            const noResults = document.getElementById('noResults');
+            
+            let filtered = movies.filter(movie => {
+                const matchesCategory = currentCategory === 'all' || movie.genre === currentCategory;
+                const query = searchQuery.toLowerCase();
+                const matchesSearch = movie.title.toLowerCase().includes(query) || 
+                                      movie.originalTitle.toLowerCase().includes(query) ||
+                                      movie.director.toLowerCase().includes(query) ||
+                                      movie.year.toString().includes(query);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            noResults.classList.add('hidden');
+            grid.innerHTML = filtered.map(movie => {
+                const isSaved = watchlist.includes(movie.id);
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:border-amber-500/50 transition-all duration-300 flex flex-col group">
+                        <div class="relative aspect-[2/3] overflow-hidden bg-slate-950 cursor-pointer" onclick="openMovieModal(${movie.id})">
+                            <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/400x600/1e293b/cbd5e1?text=Poster'">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60"></div>
+                            <div class="absolute top-3 right-3 flex items-center space-x-1 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-xl border border-slate-800 text-amber-400 font-bold text-xs">
+                                <i class="fa-solid fa-star"></i>
+                                <span>${movie.rating}</span>
+                            </div>
+                            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                                <span class="px-2.5 py-1 bg-slate-950/80 backdrop-blur-md rounded-lg text-xs font-medium border border-slate-800 text-slate-300">${movie.genre}</span>
+                                <span class="text-xs font-semibold text-slate-400">${movie.year}</span>
+                            </div>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <h3 onclick="openMovieModal(${movie.id})" class="font-bold text-base text-white hover:text-amber-400 cursor-pointer transition-colors line-clamp-1">${movie.title}</h3>
+                                <p class="text-xs text-slate-400 mt-0.5 line-clamp-1">${movie.originalTitle}</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                                <button onclick="openMovieModal(${movie.id})" class="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center space-x-1.5 transition-colors">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span>Детальніше</span>
+                                </button>
+                                <button onclick="toggleWatchlist(${movie.id})" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-xs transition-all ${isSaved ? 'text-amber-500 border-amber-500/50 bg-amber-500/10' : 'text-slate-300'}">
+                                    <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Category filter handler
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.className = "category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-all";
+            });
+            const activeBtn = document.getElementById(`cat-${cat}`);
+            if (activeBtn) {
+                activeBtn.className = "category-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-amber-500 text-slate-950 transition-all shadow-md shadow-amber-500/20";
+            }
+            renderMovies();
+        }
+
+        // Search handler
+        function handleSearch(val) {
+            searchQuery = val;
+            // Sync mobile and desktop inputs
+            document.getElementById('searchInput').value = val;
+            document.getElementById('mobileSearchInput').value = val;
+            renderMovies();
+        }
+
+        // Reset filters
+        function resetFilters() {
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('mobileSearchInput').value = '';
+            filterCategory('all');
+        }
+
+        // Watchlist toggle logic
+        function toggleWatchlist(movieId) {
+            const index = watchlist.indexOf(movieId);
+            if (index > -1) {
+                watchlist.splice(index, 1);
+            } else {
+                watchlist.push(movieId);
+            }
+            localStorage.setItem('kino_watchlist', JSON.stringify(watchlist));
+            renderMovies();
+            updateWatchlistBadge();
+            if (activeModalMovieId === movieId) {
+                updateModalWatchlistState(movieId);
+            }
+            if (!document.getElementById('watchlistModal').classList.contains('hidden')) {
+                renderWatchlistModalContent();
+            }
+        }
+
+        function toggleWatchlistFromModal() {
+            if (activeModalMovieId !== null) {
+                toggleWatchlist(activeModalMovieId);
+            }
+        }
+
+        function updateWatchlistBadge() {
+            const badge = document.getElementById('watchlistBadge');
+            badge.innerText = watchlist.length;
+        }
+
+        // Modal open / close logic
+        function openMovieModal(movieId) {
+            activeModalMovieId = movieId;
+            const movie = movies[movieId];
+            if (!movie) return;
+
+            document.getElementById('modalTitle').innerText = movie.title;
+            document.getElementById('modalGenre').innerText = movie.genre;
+            document.getElementById('modalYear').innerText = movie.year;
+            document.getElementById('modalDuration').innerText = movie.duration;
+            document.getElementById('modalRating').innerText = movie.rating;
+            document.getElementById('modalDirector').innerText = movie.director;
+            document.getElementById('modalCast').innerText = movie.cast;
+            document.getElementById('modalDesc').innerText = movie.description;
+            document.getElementById('modalTrailer').src = movie.trailer;
+
+            updateModalWatchlistState(movieId);
+
+            const modal = document.getElementById('movieModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                document.getElementById('modalContentBox').classList.remove('scale-95');
+                document.getElementById('modalContentBox').classList.add('scale-100');
+            }, 10);
+        }
+
+        function updateModalWatchlistState(movieId) {
+            const isSaved = watchlist.includes(movieId);
+            const btnText = document.getElementById('modalWatchlistText');
+            const btnIcon = document.querySelector('#modalWatchlistBtn i');
+            
+            if (isSaved) {
+                btnText.innerText = "У збережених";
+                btnIcon.className = "fa-solid fa-bookmark text-amber-500";
+            } else {
+                btnText.innerText = "У список збережених";
+                btnIcon.className = "fa-regular fa-bookmark";
+            }
+        }
+
+        function closeMovieModal() {
+            const modal = document.getElementById('movieModal');
+            modal.classList.add('opacity-0');
+            document.getElementById('modalContentBox').classList.remove('scale-100');
+            document.getElementById('modalContentBox').classList.add('scale-95');
+            document.getElementById('modalTrailer').src = ""; // Stop trailer
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                activeModalMovieId = null;
+            }, 300);
+        }
+
+        // Watchlist Modal logic
+        function openWatchlistModal() {
+            renderWatchlistModalContent();
+            const modal = document.getElementById('watchlistModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeWatchlistModal() {
+            const modal = document.getElementById('watchlistModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function renderWatchlistModalContent() {
+            const container = document.getElementById('watchlistContainer');
+            const emptyState = document.getElementById('emptyWatchlist');
+
+            if (watchlist.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = watchlist.map(id => {
+                const movie = movies[id];
+                if (!movie) return '';
+                return `
+                    <div class="flex items-center justify-between p-3 bg-slate-950/60 border border-slate-800 rounded-2xl gap-4">
+                        <div class="flex items-center space-x-3 cursor-pointer" onclick="closeWatchlistModal(); openMovieModal(${movie.id})">
+                            <img src="${movie.poster}" alt="${movie.title}" class="w-12 h-16 object-cover rounded-xl border border-slate-800">
+                            <div>
+                                <h5 class="font-bold text-sm text-white hover:text-amber-400 transition-colors">${movie.title}</h5>
+                                <p class="text-xs text-slate-400 mt-0.5">${movie.genre} • ${movie.year}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="closeWatchlistModal(); openMovieModal(${movie.id})" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs transition-all" title="Переглянути">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                            <button onclick="toggleWatchlist(${movie.id})" class="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs transition-all" title="Видалити">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
